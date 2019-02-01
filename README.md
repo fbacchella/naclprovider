@@ -27,4 +27,30 @@ The Algorith name is "NaCl" for all services, and is defined in fr.loghub.naclpr
 To be used in in PCKS#8 content, a OID must be defined. The default one is `1.3.6.4.1.2`, but it can be changed with the 
 property `fr.loghub.nacl.oi`. It must be used before the first call to any parts of this provider.
 
-Encrypted PCKS#8 is not supported yet, it might be comming.
+Encrypted PCKS#8 is not supported yet, it might be coming.
+
+To use it with a 0MQ socket, the code is:
+
+```
+    static {
+        Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
+    }
+
+    KeyPairGenerator kg = KeyPairGenerator.getInstance(NaclProvider.NAME);
+    KeyPair kp = kg.generateKeyPair();
+    KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
+
+    Socket server = new Socket(...);
+    server.setCurvePublicKey(kp.getPublic().getEncoded());
+    server.setCurveServerKey(kf.getKeySpec(kp.getPrivate(), NaclKeySpec.class).getBytes());
+```
+
+Or, with a populated key store:
+
+```
+    KeyStore ks = KeyStore.getInstance("...");
+    ks.load(new FileInputStream("..."), null);
+    PrivateKeyEntry e = (PrivateKeyEntry) ks.getEntry("pair", new KeyStore.PasswordProtection(new char[] {}));
+    server.setCurvePublicKey(e.getCertificate().getPublicKey().getEncoded()));
+    server.setCurveServerKey(kf.getKeySpec(e.getPrivateKey(), NaclKeySpec.class).getBytes());
+```
