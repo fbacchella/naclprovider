@@ -13,7 +13,6 @@ public class NaclProvider extends Provider {
     public static final String NAME = "NaCl";
     public static final int[] OID;
     static {
-        System.out.println("init OID");
         if (System.getProperty("fr.loghub.nacl.oid") != null) {
             try {
                 OID = Arrays.asList(System.getProperty(OIDPROPERTY).split("\\.")).stream().mapToInt(Integer::parseInt).toArray();

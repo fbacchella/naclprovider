@@ -10,7 +10,8 @@ public class NaclPrivateKey implements PrivateKey {
     private final byte[] bytes;
     
     public NaclPrivateKey(byte[] bytes) {
-        if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES + PKCS8Codec.PKCS8OVERHEAD) {
+        // Overhead is bigger on jks !
+        if (bytes.length < curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES + PKCS8Codec.PKCS8OVERHEAD) {
             throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed");
         }
         this.bytes = bytes;

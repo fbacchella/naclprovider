@@ -16,17 +16,17 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
 public class KeyStoreTest {
 
-    private static final String KEYSTOREFORMAT = "JCEKS";
     private static final char[] password = new char[] {};
 
     private static final ProtectionParameter protection = new KeyStore.PasswordProtection(password);
@@ -45,25 +45,43 @@ public class KeyStoreTest {
         assert (rc == 0);
     }
 
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
+
     @Test
-    public void ZMQCurveTest() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
-        createKs("/tmp/lh.jceks");
-        loadKs("/tmp/lh.jceks");
+    public void TestJks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.jks";
+        createKs(kspath, "JKS");
+        loadKs(kspath, "JKS");
     }
 
-    private void loadKs(String path) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableEntryException {
-        KeyStore ks = KeyStore.getInstance(KEYSTOREFORMAT);
+    @Test
+    public void TestJceks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.jceks";
+        createKs(kspath, "JCEKS");
+        loadKs(kspath, "JCEKS");
+    }
+
+    @Test(expected=ClassCastException.class)
+    public void TestPkcs12() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.p12";
+        createKs(kspath, "PKCS12");
+        loadKs(kspath, "PKCS12");
+    }
+
+    private void loadKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableEntryException {
+        KeyStore ks = KeyStore.getInstance(keystoreformat);
         ks.load(new FileInputStream(path), null);
-        System.out.println(Collections.list(ks.aliases()));
         Certificate cert = ks.getCertificate("public");
         Assert.assertNotNull(cert);
-        PrivateKeyEntry e = (PrivateKeyEntry) ks.getEntry("bi", protection);
-        System.out.println(e.getCertificate());
-        System.out.println(e.getPrivateKey());
+        PrivateKeyEntry e = (PrivateKeyEntry) ks.getEntry("pair", protection);
+        Assert.assertTrue(e.getCertificate() instanceof NaclCertificate);
+        Assert.assertTrue(e.getPrivateKey() instanceof NaclPrivateKey);
+
     }
 
-    private void createKs(String path) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
-        KeyStore ks = KeyStore.getInstance(KEYSTOREFORMAT);
+    private void createKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+        KeyStore ks = KeyStore.getInstance(keystoreformat);
         ks.load(null);
 
         NaclKeySpec privatekey = new NaclKeySpec(privateKey);
@@ -73,7 +91,8 @@ public class KeyStoreTest {
 
         KeyStore.TrustedCertificateEntry tce = new KeyStore.TrustedCertificateEntry(certificate);
         ks.setEntry("public", tce, null);
-        ks.setKeyEntry("bi", kf.generatePrivate(privatekey), password, new Certificate[] {certificate});
+        ks.setKeyEntry("pair", kf.generatePrivate(privatekey), password, new Certificate[] {certificate});
         ks.store(new FileOutputStream(path), password);
     }
+
 }

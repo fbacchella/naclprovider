@@ -5,8 +5,8 @@ A Provider for use with jnacl
 It allows tu use standard Java security code and tools with [jnacl](https://github.com/neilalexander/jnacl), used for example in 
 [jeromq](https://github.com/zeromq/jeromq).
 
-For example, private and public key can be store in Java's keystore. A main limitation is that only JECKS is now to works with custom content. Both PKCS#12
-and JKS fails.
+For example, private and public key can be store in Java's keystore. A main limitation is that only JECKS or JKS is now to works with custom content. PKCS#12
+only access X.509 certificates associated with a private key.
 
 To use it, either add:
 
