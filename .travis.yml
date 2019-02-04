@@ -23,8 +23,6 @@ notifications:
 addons:
   sonarcloud:
     organization: fbacchella-github
-    token:
-      secure: "jQYJJtZwMLL584h/D3DMyF/N2GUHVucEAsH6EbvlPPhEkArZh97/HFOMLJhqxi/RRndpd0fVIUqwToIBfYepnkgZlsbLEVFztZoFqIWygCOu1rbTXVpU0mTX/dsxxzPyyJI3YhmvWQpwuKQrSk8DL9RUOr6niSbr9wgloPIPgtQ="
 matrix:
   include:
       # Sonarcloud don't work on jdk11 yet
