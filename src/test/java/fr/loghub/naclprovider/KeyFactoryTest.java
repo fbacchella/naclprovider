@@ -4,6 +4,7 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Provider;
+import java.security.PublicKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -24,10 +25,15 @@ public class KeyFactoryTest {
     @Test
     public void testRead() throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
-        NaclKeySpec privatekey = new NaclKeySpec(PRIVATEKEY);
+        NaclPrivateKeySpec privatekey = new NaclPrivateKeySpec(PRIVATEKEY);
+        NaclPublicKeySpec publickey = new NaclPublicKeySpec(privatekey);
         PrivateKey pv = kf.generatePrivate(privatekey);
-        NaclKeySpec naclspec = kf.getKeySpec(pv, NaclKeySpec.class);
+        PublicKey pu = kf.generatePublic(publickey);
+        NaclPrivateKeySpec naclspec = kf.getKeySpec(pv, NaclPrivateKeySpec.class);
         PKCS8EncodedKeySpec pkcs8spec = kf.getKeySpec(pv, PKCS8EncodedKeySpec.class);
+
+        Assert.assertEquals("X.509", pu.getFormat());
+        Assert.assertEquals("PKCS#8", pv.getFormat());
         Assert.assertArrayEquals(PRIVATEKEY, privatekey.getBytes());
         Assert.assertArrayEquals(PRIVATEKEY, naclspec.getBytes());
         Assert.assertArrayEquals(pv.getEncoded(), pkcs8spec.getEncoded());

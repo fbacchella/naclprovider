@@ -3,26 +3,31 @@ package fr.loghub.naclprovider;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class PKCS8Codec {
-    
+public class PKCS8Codec extends SimpleBerCodec {
+
     public static final int PKCS8OVERHEAD = 16;
 
-    private static final byte INTEGER = 0x02;
-    private static final byte OCTETSTRING = 0x04;
-    private static final byte OBJECTIDENTIFIER = 0x06;
-    private static final byte SEQUENCE = 0x30;
     private static final byte[] VERSION = new byte[] {INTEGER,1,0};
 
-    private final ByteBuffer buffer;
 
     private int[] oid;
     private byte[] key;
 
     public PKCS8Codec(ByteBuffer buffer) {
-        this.buffer = buffer;
+        super(buffer);
     }
 
     public void write() {
+        writeSequence(buffer, i -> {
+            writeInteger(i, 0);
+            writeSequence(i, j -> {
+                writeOid(j, oid);
+            });
+            writeOctetString(i, key);
+        });
+    }
+
+    public void oldwrite() {
         int start = buffer.position();
         buffer.put(SEQUENCE);
         int size1position = buffer.position();
@@ -31,25 +36,30 @@ public class PKCS8Codec {
         // Put EncryptedPrivateKeyInfo
         buffer.put(SEQUENCE);
         buffer.put((byte) (3 + oid.length - 2));
-        encodeOid();
+        writeOid(buffer, oid);
         buffer.put(OCTETSTRING);
         buffer.put((byte) key.length);
         buffer.put(key);
         int end = buffer.position();
         buffer.put(size1position, (byte) (end - 2 - start));
     }
-
-    private void encodeOid() {
-        buffer.put((byte) OBJECTIDENTIFIER);
-        buffer.put((byte) (oid.length - 1));
-        buffer.put((byte) (oid[0] * 40 + oid[1]));
-        for (int i= 2 ; i < oid.length; i++) {
-            buffer.put((byte) oid[i]);
-        }
+    
+    public void read() {
+        readSequence(buffer, i -> {
+            int version = readInteger(i);
+            if (version != 0) {
+                throw new IllegalStateException("Only version 0 defined");
+            }
+            readSequence(i, j-> {
+                oid = readOid(j);
+            });
+            key = readOctetString(i);
+        });
     }
 
-    public void read() {
+    public void oldread() {
         boolean valid = buffer.get() == SEQUENCE;
+        System.out.format("%d %s\n", 1, valid);
         byte size = buffer.get();
         if (size > buffer.remaining()) {
             throw new IllegalArgumentException("key is not PKCS#8 encoded");
@@ -59,34 +69,26 @@ public class PKCS8Codec {
         byte[] version = new byte[VERSION.length];
         buffer.get(version);
         valid &= Arrays.equals(VERSION, version);
+        System.out.format("%d %s\n", 2, valid);
         // EncryptedPrivateKeyInfo SEQUENCE
         valid &= buffer.get() == SEQUENCE;
+        System.out.format("%d %s\n", 3, valid);
         byte sequenceLength = buffer.get();
         // OID for algorithm
         ByteBuffer subbuffer = buffer.slice();
         buffer.position(buffer.position() + sequenceLength);
         subbuffer.limit(sequenceLength);
-        valid &= readOid(subbuffer);
+        oid = readOid(subbuffer);
+        valid &= oid != null;
+        System.out.format("%d %s\n", 4, valid);
         valid &= buffer.get() == OCTETSTRING;
+        System.out.format("%d %s\n", 5, valid);
         byte length = buffer.get();
         key = new byte[length];
         buffer.get(key);
         if (! valid) {
             throw new IllegalArgumentException("key is not PKCS#8 encoded");
         }
-    }
-
-    private boolean readOid(ByteBuffer oidBuffer) {
-        boolean valid = oidBuffer.get() == OBJECTIDENTIFIER;
-        byte[] oidBytes = new byte[oidBuffer.get()];
-        oidBuffer.get(oidBytes);
-        oid = new int[oidBytes.length + 1];
-        oid[1] = oidBytes[0] % 40;
-        oid[0] = (oidBytes[0] - oid[1]) / 40;
-        for(int i = 1; i < oidBytes.length ; i++) {
-            oid[i + 1] = oidBytes[i];
-        }
-        return valid;
     }
 
     public int[] getOid() {

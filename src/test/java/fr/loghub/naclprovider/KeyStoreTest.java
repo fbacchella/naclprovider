@@ -36,12 +36,12 @@ public class KeyStoreTest {
         Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
     }
 
-    private static final byte[] publicKey = new byte[curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES];
-    private static final byte[] privateKey = new byte[curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES];
+    private static final byte[] PUBLICKEY = new byte[curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES];
+    private static final byte[] PRIVATEKEY = new byte[curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES];
 
     @BeforeClass
     public static void createKeys() {
-        int rc = curve25519xsalsa20poly1305.crypto_box_keypair(publicKey, privateKey);
+        int rc = curve25519xsalsa20poly1305.crypto_box_keypair(PUBLICKEY, PRIVATEKEY);
         assert (rc == 0);
     }
 
@@ -84,10 +84,12 @@ public class KeyStoreTest {
         KeyStore ks = KeyStore.getInstance(keystoreformat);
         ks.load(null);
 
-        NaclKeySpec privatekey = new NaclKeySpec(privateKey);
-        NaclCertificate certificate = new NaclCertificate(publicKey);
-
+        NaclPrivateKeySpec privatekey = new NaclPrivateKeySpec(PRIVATEKEY);
+        NaclPublicKeySpec publickey = new NaclPublicKeySpec(PUBLICKEY);
+        
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
+
+        NaclCertificate certificate = new NaclCertificate(kf.generatePublic(publickey).getEncoded());
 
         KeyStore.TrustedCertificateEntry tce = new KeyStore.TrustedCertificateEntry(certificate);
         ks.setEntry("public", tce, null);

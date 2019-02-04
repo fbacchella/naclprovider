@@ -1,32 +1,18 @@
 package fr.loghub.naclprovider;
 
-import java.security.PublicKey;
+import java.security.spec.KeySpec;
 import java.util.Arrays;
 
 import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
-public class NaclPublicKey implements PublicKey {
-
-    
+public class NaclPrivateKeySpec implements KeySpec {
     private final byte[] bytes;
-
-    public NaclPublicKey(byte[] bytes) {
-        if (bytes.length != (curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES + PublicKeyCodec.PUBLICKEYOVERHEAD)) {
-            throw new IllegalArgumentException("Only 32 bytes, got " + bytes.length);
+    
+    NaclPrivateKeySpec(byte[] bytes) {
+        if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES) {
+            throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed");
         }
         this.bytes = bytes;
-    }
-
-    public String getAlgorithm() {
-        return NaclProvider.NAME;
-    }
-
-    public String getFormat() {
-        return "X.509";
-    }
-
-    public byte[] getEncoded() {
-        return bytes;
     }
 
     @Override
@@ -42,10 +28,16 @@ public class NaclPublicKey implements PublicKey {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        NaclPublicKey other = (NaclPublicKey) obj;
+        NaclPrivateKeySpec other = (NaclPrivateKeySpec) obj;
         if (!Arrays.equals(bytes, other.bytes))
             return false;
         return true;
     }
 
+    /**
+     * @return the bytes
+     */
+    public byte[] getBytes() {
+        return bytes;
+    }
 }

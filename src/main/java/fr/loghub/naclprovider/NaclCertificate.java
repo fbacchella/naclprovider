@@ -18,10 +18,14 @@ public class NaclCertificate extends Certificate {
     
     protected NaclCertificate(byte[] bytes) {
         super(NaclProvider.NAME);
-        if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES) {
-            throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed");
+        if (bytes.length != (curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES + PublicKeyCodec.PUBLICKEYOVERHEAD)) {
+            throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed, got " + bytes.length);
         }
         this.bytes = bytes;
+    }
+
+    public NaclCertificate(NaclPublicKeySpec naclPublicKeySpec) {
+        this.bytes = new NaclPublicKeySpec(PUBLICKEY).getBytes()
     }
 
     @Override
