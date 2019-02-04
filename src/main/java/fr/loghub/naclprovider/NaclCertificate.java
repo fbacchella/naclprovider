@@ -24,10 +24,6 @@ public class NaclCertificate extends Certificate {
         this.bytes = bytes;
     }
 
-    public NaclCertificate(NaclPublicKeySpec naclPublicKeySpec) {
-        this.bytes = new NaclPublicKeySpec(PUBLICKEY).getBytes()
-    }
-
     @Override
     public byte[] getEncoded() throws CertificateEncodingException {
         return bytes;
