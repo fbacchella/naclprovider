@@ -1,5 +1,6 @@
 package fr.loghub.naclprovider;
 
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGeneratorSpi;
 import java.security.SecureRandom;
@@ -8,7 +9,7 @@ import com.neilalexander.jnacl.crypto.curve25519;
 import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
 public class NaclKeyPairGenerator extends KeyPairGeneratorSpi {
-    
+
     SecureRandom random = null;
 
     @Override
@@ -28,7 +29,12 @@ public class NaclKeyPairGenerator extends KeyPairGeneratorSpi {
         byte[] pk = new byte[curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES];
         random.nextBytes(sk);
         curve25519.crypto_scalarmult_base(pk, sk);
-        return new KeyPair(new NaclPublicKey(pk), new NaclPrivateKey(sk));
+
+        try {
+            return new KeyPair(new NaclPublicKey(pk), new NaclPrivateKey(sk));
+        } catch (InvalidKeyException e) {
+            throw new IllegalStateException("Impossible state", e);
+        }
     }
 
 }

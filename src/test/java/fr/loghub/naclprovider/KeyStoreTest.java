@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStore.PrivateKeyEntry;
@@ -49,22 +50,22 @@ public class KeyStoreTest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    public void TestJks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
-        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.jks";
+    public void TestJks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
+        String kspath = "/tmp" + "/naclprovider.jks";
         createKs(kspath, "JKS");
         loadKs(kspath, "JKS");
     }
 
     @Test
-    public void TestJceks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
-        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.jceks";
+    public void TestJceks() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
+        String kspath = "/tmp" + "/naclprovider.jceks";
         createKs(kspath, "JCEKS");
         loadKs(kspath, "JCEKS");
     }
 
     @Test(expected=ClassCastException.class)
-    public void TestPkcs12() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
-        String kspath = testFolder.getRoot().getCanonicalPath() + "/naclprovider.p12";
+    public void TestPkcs12() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
+        String kspath = "/tmp" + "/naclprovider.p12";
         createKs(kspath, "PKCS12");
         loadKs(kspath, "PKCS12");
     }
@@ -80,16 +81,16 @@ public class KeyStoreTest {
 
     }
 
-    private void createKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+    private void createKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
         KeyStore ks = KeyStore.getInstance(keystoreformat);
         ks.load(null);
 
         NaclPrivateKeySpec privatekey = new NaclPrivateKeySpec(PRIVATEKEY);
         NaclPublicKeySpec publickey = new NaclPublicKeySpec(PUBLICKEY);
-        
+
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
 
-        NaclCertificate certificate = new NaclCertificate(kf.generatePublic(publickey).getEncoded());
+        NaclCertificate certificate = new NaclCertificate(publickey.getBytes());
 
         KeyStore.TrustedCertificateEntry tce = new KeyStore.TrustedCertificateEntry(certificate);
         ks.setEntry("public", tce, null);

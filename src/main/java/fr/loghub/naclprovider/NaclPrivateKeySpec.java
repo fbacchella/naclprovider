@@ -1,5 +1,6 @@
 package fr.loghub.naclprovider;
 
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 
@@ -7,17 +8,27 @@ import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
 public class NaclPrivateKeySpec implements KeySpec {
     private final byte[] bytes;
-    
-    NaclPrivateKeySpec(byte[] bytes) {
+
+    NaclPrivateKeySpec(byte[] bytes) throws InvalidKeySpecException {
         if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES) {
-            throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed");
+            throw new InvalidKeySpecException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
         this.bytes = bytes;
     }
 
+    /**
+     * @return the bytes
+     */
+    public byte[] getBytes() {
+        return bytes;
+    }
+
     @Override
     public int hashCode() {
-        return Arrays.hashCode(bytes);
+        final int prime = 31;
+        int result = NaclPrivateKeySpec.class.hashCode();
+        result = prime * result + Arrays.hashCode(bytes);
+        return result;
     }
 
     @Override
@@ -34,10 +45,4 @@ public class NaclPrivateKeySpec implements KeySpec {
         return true;
     }
 
-    /**
-     * @return the bytes
-     */
-    public byte[] getBytes() {
-        return bytes;
-    }
 }

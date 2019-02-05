@@ -8,32 +8,33 @@ import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 
 import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
 public class NaclCertificate extends Certificate {
 
-    private final byte[] bytes;
-    
-    protected NaclCertificate(byte[] bytes) {
+    private final NaclPublicKey pk;
+
+    public NaclCertificate(byte[] bytes) throws InvalidKeyException {
         super(NaclProvider.NAME);
-        if (bytes.length != (curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES + PublicKeyCodec.PUBLICKEYOVERHEAD)) {
-            throw new IllegalArgumentException("Only 32 bits/256 bytes size allowed, got " + bytes.length);
+        if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES) {
+            throw new InvalidKeyException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
-        this.bytes = bytes;
+        pk = new NaclPublicKey(bytes);
     }
 
     @Override
     public byte[] getEncoded() throws CertificateEncodingException {
-        return bytes;
+        return pk.getEncoded();
     }
 
     @Override
     public void verify(PublicKey key) throws CertificateException,
-                    NoSuchAlgorithmException, InvalidKeyException,
-                    NoSuchProviderException, SignatureException {
-
+    NoSuchAlgorithmException, InvalidKeyException,
+    NoSuchProviderException, SignatureException {
+        if (! pk.equals(key)) {
+            throw new InvalidKeyException("Not a matching public key");
+        }
     }
 
     @Override
@@ -41,21 +42,25 @@ public class NaclCertificate extends Certificate {
                     throws CertificateException, NoSuchAlgorithmException,
                     InvalidKeyException, NoSuchProviderException,
                     SignatureException {
+        verify(key);
     }
 
     @Override
     public String toString() {
-        return "NaCl public key/" + hashCode();
+        return "NaCl public key/" + pk.hashCode();
     }
 
     @Override
     public PublicKey getPublicKey() {
-        return new NaclPublicKey(bytes);
+        return pk;
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(bytes);
+        final int prime = 31;
+        int result = NaclCertificate.class.hashCode();
+        result = prime * result + pk.hashCode();
+        return result;
     }
 
     @Override
@@ -67,10 +72,12 @@ public class NaclCertificate extends Certificate {
         if (getClass() != obj.getClass())
             return false;
         NaclCertificate other = (NaclCertificate) obj;
-        if (!Arrays.equals(bytes, other.bytes))
+        if (pk == null) {
+            if (other.pk != null)
+                return false;
+        } else if (!pk.equals(other.pk))
             return false;
         return true;
     }
 
-    
 }

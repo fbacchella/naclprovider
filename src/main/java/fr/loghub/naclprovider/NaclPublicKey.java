@@ -1,5 +1,7 @@
 package fr.loghub.naclprovider;
 
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.Arrays;
 
@@ -7,14 +9,24 @@ import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
 public class NaclPublicKey implements PublicKey {
 
-    
     private final byte[] bytes;
 
-    public NaclPublicKey(byte[] bytes) {
-        if (bytes.length != (curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES + PublicKeyCodec.PUBLICKEYOVERHEAD)) {
-            throw new IllegalArgumentException("Only 32 bytes, got " + bytes.length);
+    public NaclPublicKey(byte[] bytes) throws InvalidKeyException {
+        if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES) {
+            throw new InvalidKeyException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
-        this.bytes = bytes;
+        ByteBuffer buffer = ByteBuffer.allocate(curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES + PublicKeyCodec.PUBLICKEYOVERHEAD + NaclProvider.OID.length - 1);
+        PublicKeyCodec writer = new PublicKeyCodec(buffer);
+        writer.setKey(bytes);
+        writer.setOid(NaclProvider.OID);
+        writer.write();
+        buffer.flip();
+        this.bytes = new byte[buffer.remaining()];
+        buffer.get(this.bytes);
+    }
+
+    public NaclPublicKey(NaclPublicKeySpec spec) throws InvalidKeyException {
+        this(spec.getBytes());
     }
 
     public String getAlgorithm() {
@@ -31,7 +43,10 @@ public class NaclPublicKey implements PublicKey {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(bytes);
+        final int prime = 31;
+        int result = NaclPublicKey.class.hashCode();
+        result = prime * result + Arrays.hashCode(bytes);
+        return result;
     }
 
     @Override

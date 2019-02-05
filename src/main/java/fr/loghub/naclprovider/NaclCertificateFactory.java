@@ -2,6 +2,8 @@ package fr.loghub.naclprovider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.security.cert.CRL;
 import java.security.cert.CRLException;
 import java.security.cert.Certificate;
@@ -19,11 +21,16 @@ public class NaclCertificateFactory extends CertificateFactorySpi {
             byte[] bytes = new byte[inStream.available()];
             int read = inStream.read(bytes);
             if (read != bytes.length) {
-                throw new CertificateException("Not enough bytes");
+                throw new CertificateException("Not enough bytes read");
             }
-            return new NaclCertificate(bytes);
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            PublicKeyCodec codec = new PublicKeyCodec(buffer);
+            codec.read();
+            return new NaclCertificate(codec.getKey());
         } catch (IOException ex) {
             throw new CertificateException("Unreadable NaCl certificate", ex);
+        } catch (InvalidKeyException e) {
+            throw new CertificateException("Invalid key to import", e);
         }
     }
 

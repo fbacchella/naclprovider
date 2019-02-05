@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 public class PublicKeyCodec extends SimpleBerCodec {
 
-    public static final int PUBLICKEYOVERHEAD = 13;
+    public static final int PUBLICKEYOVERHEAD = 8;
 
     private byte[] key;
     private int[] oid;
