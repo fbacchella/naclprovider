@@ -22,7 +22,7 @@ Or one can add in it's startup code:
 Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
 ```
 
-The Algorith name is "NaCl" for all services, and is defined in fr.loghub.naclprovider.NaclProvider.NAME.
+The Algorithm name is "NaCl" for all services, and is defined in fr.loghub.naclprovider.NaclProvider.NAME.
 
 To be used in in PCKS#8 content, a OID must be defined. The default one is `1.3.6.4.1.2`, but it can be changed with the 
 property `fr.loghub.nacl.oi`. It must be used before the first call to any parts of this provider.
@@ -38,11 +38,9 @@ To use it with a 0MQ socket, the code is:
 
     KeyPairGenerator kg = KeyPairGenerator.getInstance(NaclProvider.NAME);
     KeyPair kp = kg.generateKeyPair();
-    KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
 
-    Socket server = new Socket(...);
-    server.setCurvePublicKey(kp.getPublic().getEncoded());
-    server.setCurveServerKey(kf.getKeySpec(kp.getPrivate(), NaclKeySpec.class).getBytes());
+    PrivateKey prk = kp.getPrivate();
+    PublicKey puk = kp.getPublic();
 ```
 
 Or, with a populated key store:
@@ -51,6 +49,20 @@ Or, with a populated key store:
     KeyStore ks = KeyStore.getInstance("...");
     ks.load(new FileInputStream("..."), null);
     PrivateKeyEntry e = (PrivateKeyEntry) ks.getEntry("pair", new KeyStore.PasswordProtection(new char[] {}));
-    server.setCurvePublicKey(e.getCertificate().getPublicKey().getEncoded()));
-    server.setCurveServerKey(kf.getKeySpec(e.getPrivateKey(), NaclKeySpec.class).getBytes());
+    
+    PrivateKey prk = e.getPrivateKey();
+    PublicKey puk = e.getCertificate().getPublicKey();
+```
+
+And then it can be send to the socket:
+
+```
+    KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
+    byte[] privateKey = kf.getKeySpec(prk, NaclPrivateKeySpec.class).getBytes();
+    byte[] publicKey = kf.getKeySpec(puk, NaclPublicKeySpec.class).getBytes();
+    
+    Socket sock = new Socket(...);
+    
+    sock.setCurveSecretKey(privateKey);
+    sock.setCurvePublicKey(publicKey);
 ```

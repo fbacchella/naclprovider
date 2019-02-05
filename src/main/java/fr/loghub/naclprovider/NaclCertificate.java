@@ -23,6 +23,14 @@ public class NaclCertificate extends Certificate {
         pk = new NaclPublicKey(bytes);
     }
 
+    public NaclCertificate(PublicKey pk) throws InvalidKeyException {
+        super(NaclProvider.NAME);
+        if (! NaclProvider.NAME.equals(pk.getAlgorithm())) {
+            throw new InvalidKeyException("NaCl key expected, got a " + pk.getAlgorithm());
+        }
+        this.pk = (NaclPublicKey)pk;
+    }
+
     @Override
     public byte[] getEncoded() throws CertificateEncodingException {
         return pk.getEncoded();

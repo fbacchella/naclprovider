@@ -54,6 +54,12 @@ public class NaclKeyFactory extends KeyFactorySpi {
     @Override
     protected <T extends KeySpec> T engineGetKeySpec(Key key, Class<T> keySpecClass)
                     throws InvalidKeySpecException {
+        if (key == null) {
+            throw new NullPointerException("null key");
+        }
+        if (keySpecClass == null) {
+            throw new NullPointerException("null key spec");
+        }
         if (keySpecClass == PKCS8EncodedKeySpec.class && key instanceof NaclPrivateKey) {
             NaclPrivateKey naclkey = (NaclPrivateKey) key;
             return (T) new PKCS8EncodedKeySpec(naclkey.getEncoded());

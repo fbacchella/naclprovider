@@ -11,7 +11,7 @@ public class NaclProvider extends Provider {
 
     public static final String OIDPROPERTY = "fr.loghub.nacl.oid";
     public static final String NAME = "NaCl";
-    public static final int[] OID;
+    static final int[] OID;
     static {
         if (System.getProperty("fr.loghub.nacl.oid") != null) {
             try {
@@ -34,6 +34,10 @@ public class NaclProvider extends Provider {
         putService(new Service(this, "CertificateFactory", NAME, NaclCertificateFactory.class.getCanonicalName(), aliases, attributes));
         putService(new Service(this, "KeyFactory", NAME, NaclKeyFactory.class.getCanonicalName(), aliases, attributes));
         putService(new Service(this, "KeyPairGenerator", NAME, NaclKeyPairGenerator.class.getCanonicalName(), aliases, attributes));
+    }
+
+    public static int[] getOid() {
+        return OID.clone();
     }
 
 }
