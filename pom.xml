@@ -10,6 +10,11 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <year>2020</year>
+        <jdk.compile.home>${jdk.8.home}</jdk.compile.home>
+        <bootclasspath>${jdk.compile.home}/jre/lib/rt.jar</bootclasspath>
+        <!-- Indirection needed to keep optionnal jacoco settings and external argument lines-->
+        <arg.line></arg.line>
+        <argLine>${arg.line}</argLine>
     </properties>
 
     <dependencies>
@@ -105,6 +110,18 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-Xbootclasspath/p:${bootclasspath}</arg>
+                    </compilerArgs>
+                           <!-- needed for maven-plugin-javadoc to find the source version to use -->
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -253,28 +270,6 @@
                     </plugin>
                 </plugins>
             </reporting>
-        </profile>
-        <profile>
-           <!-- With this profile, it's possible to used the latest jvm but still get jar compatible with pre-9 JVM.
-                It must be used with -Djdk.8.home=$JAVA8_HOME. Example:
-                JAVA_HOME=$JAVA14_HOME mvn compile -Pcrosscompile -Djdk.8.home=$JAVA8_HOME !-->
-            <id>crosscompile</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <compilerArgs>
-                                <arg>-Xbootclasspath/p:${bootclasspath}</arg>
-                            </compilerArgs>
-                           <!-- needed for maven-plugin-javadoc to find the source version to use -->
-                            <source>${maven.compiler.source}</source>
-                            <target>${maven.compiler.target}</target>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 
