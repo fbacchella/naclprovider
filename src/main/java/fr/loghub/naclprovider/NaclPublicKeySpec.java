@@ -10,7 +10,7 @@ import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 public class NaclPublicKeySpec implements KeySpec {
     private final byte[] bytes;
 
-    NaclPublicKeySpec(byte[] bytes) throws InvalidKeySpecException {
+    public NaclPublicKeySpec(byte[] bytes) throws InvalidKeySpecException {
         if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES) {
             throw new InvalidKeySpecException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
