@@ -9,9 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <year>2020</year>
-        <jdk.compile.home>${jdk.8.home}</jdk.compile.home>
-        <bootclasspath>${jdk.compile.home}/jre/lib/rt.jar</bootclasspath>
+        <year>2021</year>
         <!-- Indirection needed to keep optionnal jacoco settings and external argument lines-->
         <arg.line></arg.line>
         <argLine>${arg.line}</argLine>
@@ -43,14 +41,12 @@
                     <configuration>
                         <keywords>true</keywords>
                         <source>1.8</source>
-                        <tags>
-                            <tag>
-                                <name>api.note</name>
-                                <placement>a</placement>
-                                <head>API Note</head>
-                            </tag>
-                        </tags>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -74,18 +70,23 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.5</version>
+                    <version>0.8.6</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.7.0.1746</version>
+                    <version>3.8.0.2131</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -117,7 +118,7 @@
                     <compilerArgs>
                         <arg>-Xbootclasspath/p:${bootclasspath}</arg>
                     </compilerArgs>
-                           <!-- needed for maven-plugin-javadoc to find the source version to use -->
+                    <!-- needed for maven-plugin-javadoc to find the source version to use -->
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
@@ -125,12 +126,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-source</id>
@@ -185,6 +184,104 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>3.7.0.1746</version>
+                        <executions>
+                            <execution>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>versions</id>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                    <report>dependency-updates-report</report>
+                                    <report>plugin-updates-report</report>
+                                    <report>property-updates-report</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+        <profile>
+            <!-- With this profile, it's possible to used the latest jvm but 
+                still get jar compatible with pre-9 JVM. It's activated when jdk.compile.home 
+                is defined. Example: JAVA_HOME=$JAVA14_HOME mvn compile -Djdk.compile.home=$JAVA8_HOME 
+                ! -->
+            <id>crosscompile</id>
+            <activation>
+                <property>
+                    <name>jdk.compile.home</name>
+                </property>
+            </activation>
+            <properties>
+                <bootclasspath>${jdk.compile.home}/jre/lib/rt.jar</bootclasspath>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-Xbootclasspath:${bootclasspath}</arg>
+                            </compilerArgs>
+                            <!-- needed for maven-plugin-javadoc to find the 
+                                source version to use -->
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- The default compile settings, when jdk.compile.home is not defined -->
+            <id>nocrosscompile</id>
+            <activation>
+                <property>
+                    <name>!jdk.compile.home</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <!-- needed for maven-plugin-javadoc to find the 
+                                source version to use -->
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <licenses>
         <license>
             <name>Apache License Version 2.0</name>
@@ -211,66 +308,5 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
-
-    <profiles>
-        <profile>
-            <!--Activate jacoco coverage -->
-            <id>coverage</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>default-prepare-agent</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>default-report</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>default-check</id>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!-- Used with the phase 'site' to check plugins and dependency versions -->
-            <id>versions</id>
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>versions-maven-plugin</artifactId>
-                        <version>2.7</version>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-                                    <report>dependency-updates-report</report>
-                                    <report>plugin-updates-report</report>
-                                    <report>property-updates-report</report>
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                    </plugin>
-                </plugins>
-            </reporting>
-        </profile>
-    </profiles>
 
 </project>
