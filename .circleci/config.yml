@@ -2,7 +2,7 @@ version: 2.1
 jobs:
     checkout:
         docker:
-            - image: circleci/openjdk:15-jdk-buster
+            - image: circleci/openjdk:17-jdk-buster
         steps:
             - checkout
             - restore_cache:
@@ -12,9 +12,9 @@ jobs:
             - run: mkdir -p /home/circleci/.sonar/cache /home/circleci/.m2/repository
             - run:
                 # A bug in dependency:go-offline, see https://issues.apache.org/jira/browse/MDEP-688
-                command: "mvn -B dependency:resolve dependency:resolve-plugins -s .circleci/settings.xml"
+                command: "mvn -B dependency:resolve dependency:resolve-plugins -s .circleci/settings.xml -Psonar,versions"
                 environment:
-                    JAVA_HOME: /usr/local/openjdk-15
+                    JAVA_HOME: /usr/local/openjdk-17
                     MAVEN_OPTS: "-Xmx1024m"
             - persist_to_workspace:
                 root: /
@@ -32,7 +32,7 @@ jobs:
                     - openjdk-8
     build:
         docker:
-            - image: circleci/openjdk:15-jdk-buster
+            - image: circleci/openjdk:17-jdk-buster
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -44,39 +44,16 @@ jobs:
             - run:
                 command: mvn -B clean compile -Djdk.compile.home=/tmp/ws/openjdk-8 -s .circleci/settings.xml
                 environment:
-                    JAVA_HOME: /usr/local/openjdk-15
+                    JAVA_HOME: /usr/local/openjdk-17
                     MAVEN_OPTS: "-Xmx2048m"
             - persist_to_workspace:
                 root: /
                 paths:
                     - home/circleci/.m2/repository
                     - home/circleci/project/target
-    testsj15:
+    testsj17:
         docker:
-            - image: circleci/openjdk:15-jdk-buster
-        steps:
-            - attach_workspace:
-                at: /tmp/ws
-            - run:
-                command: |
-                    mv -n /tmp/ws/home/circleci/.m2 /home/circleci/
-                    mv -n /tmp/ws/home/circleci/.sonar /home/circleci/
-                    mv -n /tmp/ws/home/circleci/project/* /home/circleci/project/
-                    mv -n /tmp/ws/home/circleci/project/.??* /home/circleci/project/
-            - run:
-                command: |
-                    mkdir -p /tmp/$CIRCLE_JOB
-                    mvn -B test -Pskip -Darg.line="-Xmx2048m -Djava.io.tmpdir=/tmp/$CIRCLE_JOB" -s .circleci/settings.xml
-                environment:
-                    JAVA_HOME: /usr/local/openjdk-15
-                    MAVEN_OPTS: "-Xmx512m"
-            - store_test_results:
-                path: target/surefire-reports
-            #don't persist_to_workspace, can't be done in parallel with testsj14
-    # Sonar don't handle Java 15
-    testsj14:
-        docker:
-            - image: circleci/openjdk:14-jdk-buster
+            - image: circleci/openjdk:17-jdk-buster
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -97,7 +74,7 @@ jobs:
                     mkdir -p /tmp/$CIRCLE_JOB
                     mvn -B test $SONAR -Pskip -Darg.line="-Xmx2048m -Djava.io.tmpdir=/tmp/$CIRCLE_JOB" -s .circleci/settings.xml
                 environment:
-                    JAVA_HOME: /usr/local/openjdk-14
+                    JAVA_HOME: /usr/local/openjdk-17
                     MAVEN_OPTS: "-Xmx1024m"
             - store_test_results:
                 path: target/surefire-reports
@@ -127,7 +104,7 @@ jobs:
                     MAVEN_OPTS: "-Xmx512m"
             - store_test_results:
                 path: target/surefire-reports
-            #don't persist_to_workspace, can't be done in parallel with testsj13
+            #don't persist_to_workspace, can't be done in parallel with testsj14
     testsj8:
         docker:
             - image: circleci/openjdk:8-buster
@@ -142,7 +119,8 @@ jobs:
                     mv -n /tmp/ws/home/circleci/project/.??* /home/circleci/project/
             - run:
                 command: |
-                    mvn -B test -Pskip -Darg.line="-Xmx2048m" -s .circleci/settings.xml
+                    mkdir -p /tmp/$CIRCLE_JOB
+                    mvn -B test -Pskip -Darg.line="-Xmx2048m -Djava.io.tmpdir=/tmp/$CIRCLE_JOB" -s .circleci/settings.xml
                 environment:
                     JAVA_HOME: /usr/local/openjdk-8
                     MAVEN_OPTS: "-Xmx512m"
@@ -151,7 +129,7 @@ jobs:
             #don't persist_to_workspace, can't be done in parallel with testsj13
     publish:
         docker:
-            - image: circleci/openjdk:15-jdk-buster
+            - image: circleci/openjdk:17-jdk-buster
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -172,7 +150,7 @@ jobs:
                     echo "publishing jobs: $PUBLISH"
                     mvn -B $PUBLISH -Pskip -Dmaven.test.skip=true -s .circleci/settings.xml
                 environment:
-                    JAVA_HOME: /usr/local/openjdk-15
+                    JAVA_HOME: /usr/local/openjdk-17
                     MAVEN_OPTS: "-Xmx2048m"
             - store_artifacts:
                 path: target/jeromq-*.jar
@@ -183,7 +161,7 @@ jobs:
                     - home/circleci/.sonar/cache
     savecache:
         docker:
-            - image: circleci/openjdk:15-jdk-buster
+            - image: circleci/openjdk:17-jdk-buster
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -194,12 +172,9 @@ jobs:
                     mv /tmp/ws/home/circleci/.sonar /home/circleci/
             - save_cache:
                 paths:
+                    - /home/circleci/.m2/repository
                     - /home/circleci/.sonar/cache
                 key: naclprovider-{{ checksum "pom.xml" }}
-            - save_cache:
-                paths:
-                    - /home/circleci/.m2/repository
-                key: naclprovider-mavendep
 workflows:
   version: 2.1
   build_and_test:
@@ -216,11 +191,7 @@ workflows:
       - testsj11:
           requires:
               - build
-      - testsj14:
-          context: "Security variables"
-          requires:
-              - build
-      - testsj15:
+      - testsj17:
           context: "Security variables"
           requires:
               - build
@@ -229,8 +200,7 @@ workflows:
           requires:
               - testsj8
               - testsj11
-              - testsj14
-              - testsj15
+              - testsj17
       - savecache:
           requires:
               - publish
