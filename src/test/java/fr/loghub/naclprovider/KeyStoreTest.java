@@ -15,6 +15,7 @@ import java.security.KeyStore.PrivateKeyEntry;
 import java.security.KeyStore.ProtectionParameter;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
 import java.security.UnrecoverableEntryException;
@@ -123,5 +124,39 @@ public class KeyStoreTest {
             ks.store(os, password);
         }
     }
+
+    /**
+     * Keystores might encode byte[] of private key in place, check that keys are not modified after saving a key in a keystore
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     * @throws InvalidKeyException
+     * @throws KeyStoreException
+     * @throws CertificateException
+     * @throws IOException
+     */
+    @Test
+    public void testSaveEncoded() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, KeyStoreException, CertificateException, IOException {
+        KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance(kf.getAlgorithm());
+        kpg.initialize(256);
+
+        for (String kstype: new String[] {"JCEKS", "JKS"}) {
+            KeyStore ks = KeyStore.getInstance(kstype);
+            ks.load(null);
+
+            KeyPair kp = kpg.generateKeyPair();
+            NaclCertificate certificate = new NaclCertificate(kp.getPublic());
+            byte[] before = kp.getPrivate().getEncoded();
+
+            ks.setKeyEntry("somekey", kp.getPrivate(), "secret".toCharArray(), new Certificate[] {certificate});
+            PrivateKey prk = kp.getPrivate();
+            PrivateKeyEntry pke1 = new PrivateKeyEntry(prk, new NaclCertificate[] {certificate} );
+            NaclPrivateKeySpec privateKey1 = kf.getKeySpec(pke1.getPrivateKey(), NaclPrivateKeySpec.class);
+            byte[] after = kf.generatePrivate(privateKey1).getEncoded();
+
+            Assert.assertArrayEquals(before, after);
+        }
+    }
+
 
 }

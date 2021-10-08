@@ -41,8 +41,14 @@ public class NaclPrivateKey implements PrivateKey {
         return "PKCS#8";
     }
 
+    /**
+     * Returns the key bytes, encoded but not encrypted according to the PKCS #8 standard.
+     *
+     * @return the PKCS #8 encoding of the key. Returns a new array
+     * each time this method is called.
+     */
     public byte[] getEncoded() {
-        return bytes;
+        return Arrays.copyOf(bytes, bytes.length);
     }
 
     @Override
