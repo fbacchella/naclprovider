@@ -1,5 +1,6 @@
 package fr.loghub.naclprovider;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -18,8 +19,8 @@ public class KeyFactoryTest {
     private static final byte[] PRIVATEKEY = "12346579801234657980132465798012".getBytes();
 
     @BeforeClass
-    public static void register() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
+    public static void register() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+        Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").getConstructor().newInstance(), Security.getProviders().length + 1);
     }
 
     @Test

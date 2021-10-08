@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -36,9 +37,9 @@ public class KeyStoreTest {
     private static KeyFactory NACLKEYFACTORY;
     static {
         try {
-            Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
+            Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").getConstructor().newInstance(), Security.getProviders().length + 1);
             NACLKEYFACTORY = KeyFactory.getInstance(NaclProvider.NAME);
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchAlgorithmException ex) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchAlgorithmException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             throw new RuntimeException("NaclProvider unavailable", ex);
         }
     }
