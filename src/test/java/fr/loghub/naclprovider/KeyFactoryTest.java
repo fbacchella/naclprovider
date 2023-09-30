@@ -1,6 +1,7 @@
 package fr.loghub.naclprovider;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -24,7 +25,7 @@ public class KeyFactoryTest {
     }
 
     @Test
-    public void testRead() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void testRead() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
         NaclPrivateKeySpec privatekey = new NaclPrivateKeySpec(PRIVATEKEY);
         NaclPublicKeySpec publickey = new NaclPublicKeySpec(privatekey);
@@ -38,7 +39,12 @@ public class KeyFactoryTest {
         Assert.assertArrayEquals(PRIVATEKEY, privatekey.getBytes());
         Assert.assertArrayEquals(PRIVATEKEY, naclspec.getBytes());
         Assert.assertArrayEquals(pv.getEncoded(), pkcs8spec.getEncoded());
-        Assert.assertEquals(publickey, kf.getKeySpec(pv, NaclPublicKeySpec.class));
+
+        NaclPublicKeySpec newPublicKeySpec = kf.getKeySpec(pv, NaclPublicKeySpec.class);
+        PublicKey newPublicKey = kf.generatePublic(newPublicKeySpec);
+        NaclCertificate certificate = new NaclCertificate(newPublicKey);
+        Assert.assertEquals(publickey, newPublicKeySpec);
+        certificate.verify(pu);
     }
 
 }

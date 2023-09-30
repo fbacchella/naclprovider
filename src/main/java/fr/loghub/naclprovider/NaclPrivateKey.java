@@ -68,7 +68,30 @@ public class NaclPrivateKey implements PrivateKey {
         if (getClass() != obj.getClass())
             return false;
         NaclPrivateKey other = (NaclPrivateKey) obj;
-        return Arrays.equals(bytes, other.bytes);
+        if (bytes.length == other.bytes.length) {
+            return Arrays.equals(bytes, other.bytes);
+        } else if ((bytes.length == 48 && other.bytes.length == 50) || (bytes.length == 50 && other.bytes.length == 48)) {
+            // "JKS" key store modify the private key, needs special comparaison
+            byte[] small = (bytes.length == 48) ? bytes : other.bytes;
+            byte[] big = (bytes.length == 48) ? other.bytes : bytes;
+            boolean match = true;
+            for (int i = 0 ; i < 48 ; i++) {
+                if (i == 1 || i == 6) {
+                    match &= (small[i] + 2) == (big[i]);
+                } else if (i == 14) {
+                    match &= small[i] + 1 == big[i];
+                } else if (i == 15) {
+                    match &= big[i] == 0;
+                } else if (i == 16) {
+                    match &= big[i] == 4;
+                } else {
+                    match &= small[i] == big[i < 14 ? i : (i + 2)];
+                }
+            }
+            return match;
+        } else {
+            return false;
+        }
     }
 
 }

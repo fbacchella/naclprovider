@@ -18,6 +18,7 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
 import java.security.UnrecoverableEntryException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -130,7 +131,9 @@ public class KeyStoreTest {
      * Keystores might encode byte[] of private key in place, check that keys are not modified after saving a key in a keystore
      */
     @Test
-    public void testSaveEncoded() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, KeyStoreException, CertificateException, IOException {
+    public void testSaveEncoded()
+            throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, KeyStoreException,
+                           CertificateException, IOException, UnrecoverableKeyException {
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(kf.getAlgorithm());
         kpg.initialize(256);
@@ -150,8 +153,11 @@ public class KeyStoreTest {
             byte[] after = kf.generatePrivate(privateKey1).getEncoded();
 
             Assert.assertArrayEquals(before, after);
+            Assert.assertEquals(certificate, ks.getCertificate("somekey"));
+            // "JKS" plays with the private key
+            Assert.assertEquals(prk, ks.getKey("somekey", "secret".toCharArray()));
+            Assert.assertEquals(ks.getKey("somekey", "secret".toCharArray()), prk);
         }
     }
-
 
 }
