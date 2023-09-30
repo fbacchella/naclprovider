@@ -38,6 +38,7 @@ public class KeyFactoryTest {
         Assert.assertArrayEquals(PRIVATEKEY, privatekey.getBytes());
         Assert.assertArrayEquals(PRIVATEKEY, naclspec.getBytes());
         Assert.assertArrayEquals(pv.getEncoded(), pkcs8spec.getEncoded());
+        Assert.assertEquals(publickey, kf.getKeySpec(pv, NaclPublicKeySpec.class));
     }
 
 }
