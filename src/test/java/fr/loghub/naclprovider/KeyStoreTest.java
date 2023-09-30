@@ -1,10 +1,9 @@
 package fr.loghub.naclprovider;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -35,7 +34,7 @@ public class KeyStoreTest {
 
     private static final ProtectionParameter protection = new KeyStore.PasswordProtection(password);
 
-    private static KeyFactory NACLKEYFACTORY;
+    private static final KeyFactory NACLKEYFACTORY;
     static {
         try {
             Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").getConstructor().newInstance(), Security.getProviders().length + 1);
@@ -77,7 +76,7 @@ public class KeyStoreTest {
     }
 
     @Test
-    public void TestPkcs12() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
+    public void TestPkcs12() {
         String kspath = Paths.get(testFolder.getRoot().toString(), "naclprovider.p12").toString();
         Assert.assertThrows(KeyStoreException.class, () -> {
             try {
@@ -90,9 +89,10 @@ public class KeyStoreTest {
         });
     }
 
-    private void loadKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableEntryException, InvalidKeySpecException {
+    private void loadKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+                                                                           IOException, UnrecoverableEntryException, InvalidKeySpecException {
         KeyStore ks = KeyStore.getInstance(keystoreformat);
-        ks.load(new FileInputStream(path), null);
+        ks.load(Files.newInputStream(Paths.get(path)), null);
         Certificate cert = ks.getCertificate("public");
         Assert.assertNotNull(cert);
         Assert.assertArrayEquals(PUBLICKEY, NACLKEYFACTORY.getKeySpec(cert.getPublicKey(), NaclPublicKeySpec.class).getBytes());
@@ -106,7 +106,8 @@ public class KeyStoreTest {
         Assert.assertArrayEquals(PRIVATEKEY, privateKey.getBytes());
     }
 
-    private void createKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableEntryException, InvalidKeySpecException, InvalidKeyException {
+    private void createKs(String path, String keystoreformat) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
+                                                                             InvalidKeySpecException, InvalidKeyException {
         KeyStore ks = KeyStore.getInstance(keystoreformat);
         ks.load(null);
 

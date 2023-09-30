@@ -16,9 +16,7 @@ public class PublicKeyCodec extends SimpleBerCodec {
     @Override
     public void write() {
         writeSequence(buffer, i-> {
-            writeSequence(i, j -> {
-                writeOid(j, oid);
-            });
+            writeSequence(i, j -> writeOid(j, oid));
             writeBitString(i, key);
         });
     }
@@ -26,9 +24,7 @@ public class PublicKeyCodec extends SimpleBerCodec {
     @Override
     public void read() {
         readSequence(buffer, i -> {
-            readSequence(i, j -> {
-                oid = readOid(j);
-            });
+            readSequence(i, j -> oid = readOid(j));
             key = readBitString(i);
         });
     }

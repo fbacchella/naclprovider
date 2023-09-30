@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.cert.CRL;
-import java.security.cert.CRLException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactorySpi;
@@ -41,13 +40,12 @@ public class NaclCertificateFactory extends CertificateFactorySpi {
     }
 
     @Override
-    public CRL engineGenerateCRL(InputStream inStream) throws CRLException {
+    public CRL engineGenerateCRL(InputStream inStream) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Collection<? extends CRL> engineGenerateCRLs(InputStream inStream)
-                    throws CRLException {
+    public Collection<? extends CRL> engineGenerateCRLs(InputStream inStream) {
         throw new UnsupportedOperationException();
     }
 

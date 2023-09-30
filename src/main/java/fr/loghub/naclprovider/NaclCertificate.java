@@ -1,13 +1,8 @@
 package fr.loghub.naclprovider;
 
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 
 import com.neilalexander.jnacl.crypto.curve25519xsalsa20poly1305;
 
@@ -32,14 +27,12 @@ public class NaclCertificate extends Certificate {
     }
 
     @Override
-    public byte[] getEncoded() throws CertificateEncodingException {
+    public byte[] getEncoded() {
         return pk.getEncoded();
     }
 
     @Override
-    public void verify(PublicKey key) throws CertificateException,
-    NoSuchAlgorithmException, InvalidKeyException,
-    NoSuchProviderException, SignatureException {
+    public void verify(PublicKey key) throws InvalidKeyException {
         if (! pk.equals(key)) {
             throw new InvalidKeyException("Not a matching public key");
         }
@@ -47,9 +40,7 @@ public class NaclCertificate extends Certificate {
 
     @Override
     public void verify(PublicKey key, String sigProvider)
-                    throws CertificateException, NoSuchAlgorithmException,
-                    InvalidKeyException, NoSuchProviderException,
-                    SignatureException {
+                    throws InvalidKeyException {
         verify(key);
     }
 
@@ -81,11 +72,9 @@ public class NaclCertificate extends Certificate {
             return false;
         NaclCertificate other = (NaclCertificate) obj;
         if (pk == null) {
-            if (other.pk != null)
-                return false;
-        } else if (!pk.equals(other.pk))
-            return false;
-        return true;
+            return other.pk == null;
+        } else
+            return pk.equals(other.pk);
     }
 
 }

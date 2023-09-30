@@ -18,7 +18,7 @@ public class ProviderInitTest {
         try {
             Assert.assertEquals("1.4.5", NaclProvider.OIDSTRING);
         } catch (ExceptionInInitializerError e) {
-            Assert.assertEquals("Property fr.loghub.nacl.oid: a1.4.5 can\'t be parsed", e.getMessage());
+            Assert.assertEquals("Property fr.loghub.nacl.oid: a1.4.5 can't be parsed", e.getMessage());
         }
     }
 }

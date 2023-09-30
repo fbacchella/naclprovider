@@ -50,9 +50,7 @@ public class NaclPublicKeySpec implements KeySpec {
         if (getClass() != obj.getClass())
             return false;
         NaclPublicKeySpec other = (NaclPublicKeySpec) obj;
-        if (!Arrays.equals(bytes, other.bytes))
-            return false;
-        return true;
+        return Arrays.equals(bytes, other.bytes);
     }
 
 }

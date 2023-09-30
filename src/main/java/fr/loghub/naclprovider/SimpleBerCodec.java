@@ -59,10 +59,7 @@ public abstract class SimpleBerCodec {
     }
 
     protected Integer readInteger(ByteBuffer topbuffer) {
-        Function<ByteBuffer, Integer> scan = i -> {
-            Integer subval = (int) i.get();
-            return subval;
-        };
+        Function<ByteBuffer, Integer> scan = i -> (Integer) (int) i.get();
         return readType(INTEGER, topbuffer, scan);
     }
 
@@ -95,21 +92,15 @@ public abstract class SimpleBerCodec {
     }
 
     protected void writeBitString(ByteBuffer topbuffer, byte[] data) {
-        writeType(BITSTRING, topbuffer, i -> {
-            i.put(data);
-        });
+        writeType(BITSTRING, topbuffer, i -> i.put(data));
     }
 
     protected void writeOctetString(ByteBuffer topbuffer, byte[] data) {
-        writeType(OCTETSTRING, topbuffer, i -> {
-            i.put(data);
-        });
+        writeType(OCTETSTRING, topbuffer, i -> i.put(data));
     }
 
     protected void writeInteger(ByteBuffer topbuffer, long value) {
-        writeType(INTEGER, topbuffer, i -> {
-            i.put((byte) value);
-        });
+        writeType(INTEGER, topbuffer, i -> i.put((byte) value));
     }
 
     private void writeType(byte type, ByteBuffer topbuffer, Consumer<ByteBuffer> fill) {
@@ -118,7 +109,7 @@ public abstract class SimpleBerCodec {
         topbuffer.put((byte) 0); // place holder for size;
         int startpos = topbuffer.position();
         fill.accept(topbuffer);
-        int endpos = topbuffer.position();;
+        int endpos = topbuffer.position();
         topbuffer.put(sizepos, (byte) (endpos - startpos));
     }
 

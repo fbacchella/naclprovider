@@ -12,14 +12,14 @@ public class NaclPrivateKey implements PrivateKey {
 
     private final byte[] bytes;
 
-    public NaclPrivateKey(PKCS8EncodedKeySpec encoded) throws InvalidKeyException {
+    NaclPrivateKey(PKCS8EncodedKeySpec encoded) throws InvalidKeyException {
         if (encoded.getEncoded().length < PKCS8Codec.PKCS8OVERHEAD + NaclProvider.OID.length - 1) {
             throw new InvalidKeyException("Only 32 bytes/256 bits size allowed, got " + encoded.getEncoded().length + " bytes");
         }
         this.bytes = encoded.getEncoded();
     }
 
-    public NaclPrivateKey(byte[] bytes) throws InvalidKeyException {
+    NaclPrivateKey(byte[] bytes) throws InvalidKeyException {
         if (bytes.length < curve25519xsalsa20poly1305.crypto_secretbox_SECRETKEYBYTES) {
             throw new InvalidKeyException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
@@ -68,9 +68,7 @@ public class NaclPrivateKey implements PrivateKey {
         if (getClass() != obj.getClass())
             return false;
         NaclPrivateKey other = (NaclPrivateKey) obj;
-        if (!Arrays.equals(bytes, other.bytes))
-            return false;
-        return true;
+        return Arrays.equals(bytes, other.bytes);
     }
 
 }

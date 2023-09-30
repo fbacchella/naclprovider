@@ -11,7 +11,11 @@ public class NaclPublicKey implements PublicKey {
 
     private final byte[] bytes;
 
-    public NaclPublicKey(byte[] bytes) throws InvalidKeyException {
+    NaclPublicKey(NaclPublicKeySpec spec) throws InvalidKeyException {
+        this(spec.getBytes());
+    }
+
+    NaclPublicKey(byte[] bytes) throws InvalidKeyException {
         if (bytes.length != curve25519xsalsa20poly1305.crypto_secretbox_PUBLICKEYBYTES) {
             throw new InvalidKeyException("Only 32 bytes/256 bits size allowed, got " + bytes.length + " bytes");
         }
@@ -23,10 +27,6 @@ public class NaclPublicKey implements PublicKey {
         buffer.flip();
         this.bytes = new byte[buffer.remaining()];
         buffer.get(this.bytes);
-    }
-
-    public NaclPublicKey(NaclPublicKeySpec spec) throws InvalidKeyException {
-        this(spec.getBytes());
     }
 
     public String getAlgorithm() {
@@ -58,9 +58,7 @@ public class NaclPublicKey implements PublicKey {
         if (getClass() != obj.getClass())
             return false;
         NaclPublicKey other = (NaclPublicKey) obj;
-        if (!Arrays.equals(bytes, other.bytes))
-            return false;
-        return true;
+        return Arrays.equals(bytes, other.bytes);
     }
 
 }
