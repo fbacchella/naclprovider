@@ -9,6 +9,7 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ProviderTest {
@@ -22,6 +23,10 @@ public class ProviderTest {
         CertificateFactory  cf = CertificateFactory.getInstance(NaclProvider.NAME);
         KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(NaclProvider.NAME);
+        Assert.assertEquals(nacl, kpg.getProvider());
+        Assert.assertEquals(nacl, kf.getProvider());
+        Assert.assertEquals(nacl, cf.getProvider());
+        Assert.assertEquals("A NaCl provider for djb's NaCl library", nacl.getInfo());
     }
 
 }
