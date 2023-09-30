@@ -12,7 +12,7 @@ public class ProviderInitTest {
         System.setProperty("fr.loghub.nacl.oid", "1.4.5");
     }
     
-    @Ignore // Test usefull only a a specifc launched URL, used for manual tests
+    @Ignore // Test usefull only a specifc launched URL, used for manual tests
     @Test
     public void testProperty() {
         try {

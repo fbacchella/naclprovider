@@ -16,7 +16,7 @@ security.provider.10=fr.loghub.naclprovider.NaclProvider
 
 in $JRE_HOME/lib/security/java.security ($JAVA_HOME/conf/security/java.security since Java 9).
 
-Or one can add in it's startup code:
+Or one can add in its startup code:
 
 ```
 Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclProvider").newInstance(), Security.getProviders().length + 1);
@@ -24,7 +24,7 @@ Security.insertProviderAt((Provider) Class.forName("fr.loghub.naclprovider.NaclP
 
 The Algorithm name is "NaCl" for all services, and is defined in fr.loghub.naclprovider.NaclProvider.NAME.
 
-To be used in in PCKS#8 content, a OID must be defined. The default one is `1.3.6.4.1.2`, but it can be changed with the 
+To be used in PCKS#8 content, a OID must be defined. The default one is `1.3.6.4.1.2`, but it can be changed with the 
 property `fr.loghub.nacl.oi`. It must be used before the first call to any parts of this provider.
 
 Encrypted PCKS#8 is not supported yet, it might be coming.
@@ -54,7 +54,7 @@ Or, with a populated key store:
     PublicKey puk = e.getCertificate().getPublicKey();
 ```
 
-And then it can be send to the socket:
+And then it can be sent to the socket:
 
 ```
     KeyFactory kf = KeyFactory.getInstance(NaclProvider.NAME);

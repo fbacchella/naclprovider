@@ -11,7 +11,7 @@
         <year>2023</year>
         <surefire.version>3.1.2</surefire.version>
         <!-- Indirection needed to keep optionnal jacoco settings and external argument lines-->
-        <arg.line></arg.line>
+        <arg.line/>
         <argLine>${arg.line}</argLine>
     </properties>
 
@@ -110,7 +110,7 @@
                     <version>3.6.0</version>
                     <configuration>
                         <quiet />
-                        <source>${maven.compiler.source}</source>
+                        <source>${jdk.target}</source>
                         <detectJavaApiLink>true</detectJavaApiLink>
                         <detectLinks>false</detectLinks>
                         <keywords>true</keywords>

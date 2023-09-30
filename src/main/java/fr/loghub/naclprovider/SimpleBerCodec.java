@@ -79,7 +79,7 @@ public abstract class SimpleBerCodec {
     }
 
     protected void writeOid(ByteBuffer topbuffer, int[] oid) {
-        topbuffer.put((byte) OBJECTIDENTIFIER);
+        topbuffer.put(OBJECTIDENTIFIER);
         topbuffer.put((byte) (oid.length - 1));
         topbuffer.put((byte) (oid[0] * 40 + oid[1]));
         for (int i= 2 ; i < oid.length; i++) {
@@ -106,7 +106,7 @@ public abstract class SimpleBerCodec {
     private void writeType(byte type, ByteBuffer topbuffer, Consumer<ByteBuffer> fill) {
         topbuffer.put(type);
         int sizepos = topbuffer.position();
-        topbuffer.put((byte) 0); // place holder for size;
+        topbuffer.put((byte) 0); // placeholder for size;
         int startpos = topbuffer.position();
         fill.accept(topbuffer);
         int endpos = topbuffer.position();

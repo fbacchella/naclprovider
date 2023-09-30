@@ -1,6 +1,5 @@
 package fr.loghub.naclprovider;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.junit.Assert;

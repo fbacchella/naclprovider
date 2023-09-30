@@ -128,12 +128,6 @@ public class KeyStoreTest {
 
     /**
      * Keystores might encode byte[] of private key in place, check that keys are not modified after saving a key in a keystore
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws InvalidKeyException
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws IOException
      */
     @Test
     public void testSaveEncoded() throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, KeyStoreException, CertificateException, IOException {
