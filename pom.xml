@@ -7,9 +7,8 @@
     <description>A Provider for use with jnacl</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <year>2021</year>
+        <jdk.target>8</jdk.target>
+        <year>2023</year>
         <surefire.version>3.1.2</surefire.version>
         <!-- Indirection needed to keep optionnal jacoco settings and external argument lines-->
         <arg.line></arg.line>
@@ -111,12 +110,16 @@
                     <version>3.6.0</version>
                     <configuration>
                         <quiet />
-                        <bootclasspath>${bootclasspath}</bootclasspath>
                         <source>${maven.compiler.source}</source>
                         <detectJavaApiLink>true</detectJavaApiLink>
                         <detectLinks>false</detectLinks>
                         <keywords>true</keywords>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.1.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -218,60 +221,41 @@
             </reporting>
         </profile>
         <profile>
-            <!-- With this profile, it's possible to used the latest jvm but 
-                still get jar compatible with pre-9 JVM. It's activated when jdk.compile.home 
-                is defined. Example: JAVA_HOME=$JAVA14_HOME mvn compile -Djdk.compile.home=$JAVA8_HOME 
-                ! -->
-            <id>crosscompile</id>
+            <id>jdk8</id>
             <activation>
-                <property>
-                    <name>jdk.compile.home</name>
-                </property>
+                <jdk>1.8</jdk>
             </activation>
             <properties>
-                <bootclasspath>${jdk.compile.home}/jre/lib/rt.jar:${jdk.compile.home}/jre/lib/jce.jar</bootclasspath>
+                <maven.compiler.source>${jdk.target}</maven.compiler.source>
+                <maven.compiler.target>${jdk.target}</maven.compiler.target>
             </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <compilerArgs>
-                                <arg>-Xbootclasspath:${bootclasspath}</arg>
-                                <arg>-Xlint:deprecation</arg>
-                            </compilerArgs>
-                            <!-- needed for maven-plugin-javadoc to find the 
-                                source version to use -->
-                            <source>${maven.compiler.source}</source>
-                            <target>${maven.compiler.target}</target>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
-            <!-- The default compile settings, when jdk.compile.home is not defined -->
-            <id>nocrosscompile</id>
+            <id>jdk9+</id>
             <activation>
-                <property>
-                    <name>!jdk.compile.home</name>
-                </property>
+                <jdk>(1.8,)</jdk>
             </activation>
+            <properties>
+                <maven.compiler.release>${jdk.target}</maven.compiler.release>
+            </properties>
+        </profile>
+        <profile>
+            <!-- Used to sign a release -->
+            <id>gpgsign</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <compilerArgs>
-                                <arg>-Xlint:deprecation</arg>
-                            </compilerArgs>
-                            <!-- needed for maven-plugin-javadoc to find the 
-                                source version to use -->
-                            <source>${maven.compiler.source}</source>
-                            <target>${maven.compiler.target}</target>
-                        </configuration>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
