@@ -2,13 +2,11 @@ version: 2.1
 jobs:
     checkout:
         docker:
-            - image: cimg/openjdk:20.0
+            - image: cimg/openjdk:21.0
         steps:
             - checkout
             - restore_cache:
                 key: naclprovider-{{ checksum "pom.xml" }}
-            - restore_cache:
-                key: naclprovider-mavendep
             - run: mkdir -p /home/circleci/.sonar/cache /home/circleci/.m2/repository
             - run:
                 # A bug in dependency:go-offline, see https://issues.apache.org/jira/browse/MDEP-688
@@ -23,7 +21,7 @@ jobs:
                     - home/circleci/project
     build:
         docker:
-            - image: cimg/openjdk:20.0
+            - image: cimg/openjdk:21.0
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -41,9 +39,9 @@ jobs:
                 paths:
                     - home/circleci/.m2/repository
                     - home/circleci/project/target
-    testsj20:
+    testsj21:
         docker:
-            - image: cimg/openjdk:20.0
+            - image: cimg/openjdk:21.0
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -140,7 +138,7 @@ jobs:
             #don't persist_to_workspace, can't be done in parallel with testsj13
     publish:
         docker:
-            - image: cimg/openjdk:20.0
+            - image: cimg/openjdk:21.0
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -173,7 +171,7 @@ jobs:
                     - home/circleci/.sonar/cache
     savecache:
         docker:
-            - image: cimg/openjdk:20.0
+            - image: cimg/openjdk:21.0
         steps:
             - attach_workspace:
                 at: /tmp/ws
@@ -204,7 +202,7 @@ workflows:
       - testsj17:
             requires:
                 - build
-      - testsj20:
+      - testsj21:
           context: "Security variables"
           requires:
               - build
@@ -214,7 +212,7 @@ workflows:
               - testsj8
               - testsj11
               - testsj17
-              - testsj20
+              - testsj21
       - savecache:
           requires:
               - publish
