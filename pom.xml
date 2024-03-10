@@ -4,6 +4,7 @@
     <groupId>fr.loghub</groupId>
     <artifactId>naclprovider</artifactId>
     <version>1.0.0</version>
+    <url>https://github.com/fbacchella/naclprovider</url>
     <description>A Provider for use with jnacl</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
