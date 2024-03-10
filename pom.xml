@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.loghub</groupId>
     <artifactId>naclprovider</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <description>A Provider for use with jnacl</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
